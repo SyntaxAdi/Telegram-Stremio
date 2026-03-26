@@ -470,6 +470,18 @@ async def get_stream_analytics_api() -> dict:
         LOGGER.error(f"Stream analytics API error: {e}")
         return {"status": "error", "message": str(e)}
 
+async def clear_stream_analytics_api() -> dict:
+    try:
+        result = await db.dbs["tracking"]["stream_analytics"].delete_many({})
+        LOGGER.info(f"Admin cleared stream analytics ({result.deleted_count} records deleted).")
+
+        return {
+            "status": "success",
+            "message": f"{result.deleted_count} analytics records cleared."
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 # ---------------------------------------------------------------------------
 # Admin Subscription Management API Routes
 # ---------------------------------------------------------------------------
