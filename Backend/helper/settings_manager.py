@@ -77,7 +77,7 @@ def _seed_from_env() -> Dict[str, Any]:
         "global_search_channels":       [],
         "http_proxy_url":               Telegram.HTTP_PROXY_URL,
         "show_proxy_and_non_proxy_both": Telegram.SHOW_PROXY_AND_NON_PROXY_BOTH,
-        "multi_tokens":                 [],
+        "multi_tokens":                 list(Telegram.MULTI_TOKENS),
         "extra_databases":              list(Telegram.DATABASE[2:]) if len(Telegram.DATABASE) > 2 else [],
     })
     return seed
@@ -314,6 +314,14 @@ class SettingsManager:
                     existing.append(ch)
                     needs_save = True
             data["auth_channels"] = existing
+
+        if Telegram.MULTI_TOKENS:
+            existing_tokens = list(data.get("multi_tokens") or [])
+            for tok in Telegram.MULTI_TOKENS:
+                if tok not in existing_tokens:
+                    existing_tokens.append(tok)
+                    needs_save = True
+            data["multi_tokens"] = existing_tokens
 
         #----- Backfill & persist a session secret for installs that predate this setting,
         #----- otherwise a new random key would be generated every restart (logging admins out)

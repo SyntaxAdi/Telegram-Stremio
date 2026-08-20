@@ -12,12 +12,29 @@ def _int_env(key: str, default: int = 0) -> int:
         return default
 
 
+def _get_multi_tokens() -> list[str]:
+    tokens: list[str] = []
+    if getenv("MULTI_TOKENS"):
+        tokens.extend([t.strip() for t in (getenv("MULTI_TOKENS") or "").split(",") if t.strip()])
+    if getenv("MULTI_TOKEN"):
+        tokens.extend([t.strip() for t in (getenv("MULTI_TOKEN") or "").split(",") if t.strip()])
+    import os
+    for k, v in sorted(os.environ.items()):
+        k_up = k.upper()
+        if (k_up.startswith("MULTI_TOKEN") or k_up.startswith("MULTI_CLIENT")) and k_up not in ("MULTI_TOKENS", "MULTI_TOKEN"):
+            val = v.strip()
+            if val and val not in tokens:
+                tokens.append(val)
+    return tokens
+
+
 #----- Environment-backed configuration
 class Telegram:
     #----- Required: Telegram clients
     API_ID              = _int_env("API_ID")
     API_HASH            = getenv("API_HASH", "")
     BOT_TOKEN           = getenv("BOT_TOKEN", "")
+    MULTI_TOKENS        = _get_multi_tokens()
 
     #----- Required: Database URIs
     DATABASE = [db.strip() for db in (getenv("DATABASE") or "").split(",") if db.strip()]
