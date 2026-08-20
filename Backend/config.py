@@ -35,8 +35,8 @@ class Telegram:
     BASE_URL                      = getenv("BASE_URL", "").rstrip("/")
     UPSTREAM_REPO                 = getenv("UPSTREAM_REPO", "")
     UPSTREAM_BRANCH               = getenv("UPSTREAM_BRANCH", "")
-    ADMIN_USERNAME                = getenv("ADMIN_USERNAME", "admin")
-    ADMIN_PASSWORD                = getenv("ADMIN_PASSWORD", "admin")
+    ADMIN_USERNAME                = getenv("ADMIN_USERNAME", "").strip()
+    ADMIN_PASSWORD                = getenv("ADMIN_PASSWORD", "").strip()
     SUBSCRIPTION                  = getenv("SUBSCRIPTION", "false").lower() == "true"
     SUBSCRIPTION_GROUP_ID         = _int_env("SUBSCRIPTION_GROUP_ID")
     APPROVER_IDS                  = [int(x.strip()) for x in (getenv("APPROVER_IDS") or "").split(",") if x.strip().isdigit()]

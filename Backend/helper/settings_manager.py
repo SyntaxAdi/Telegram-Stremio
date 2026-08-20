@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 import Backend.pyrofork.bot as botmod
 from Backend.config import Telegram
-from Backend.helper.passwords import hash_password
+from Backend.helper.passwords import hash_password, verify_password
 from Backend.logger import LOGGER
 
 #----- Default values (used when nothing exists in the DB yet)
@@ -68,8 +68,8 @@ def _seed_from_env() -> Dict[str, Any]:
         "base_url":                     Telegram.BASE_URL,
         "upstream_repo":                Telegram.UPSTREAM_REPO,
         "upstream_branch":              Telegram.UPSTREAM_BRANCH,
-        "admin_username":               Telegram.ADMIN_USERNAME,
-        "admin_password":               hash_password(Telegram.ADMIN_PASSWORD),
+        "admin_username":               Telegram.ADMIN_USERNAME or "admin",
+        "admin_password":               hash_password(Telegram.ADMIN_PASSWORD or "admin"),
         "session_secret":               secrets.token_hex(32),
         "subscription":                 Telegram.SUBSCRIPTION,
         "subscription_group_id":        Telegram.SUBSCRIPTION_GROUP_ID,
@@ -295,14 +295,29 @@ class SettingsManager:
         else:
             cls._current = Settings(raw)
 
+        #----- Sync admin credentials from environment secrets if explicitly defined
+        data = cls._current.to_dict()
+        needs_save = False
+
+        if Telegram.ADMIN_USERNAME and data.get("admin_username") != Telegram.ADMIN_USERNAME:
+            data["admin_username"] = Telegram.ADMIN_USERNAME
+            needs_save = True
+
+        if Telegram.ADMIN_PASSWORD and not verify_password(Telegram.ADMIN_PASSWORD, data.get("admin_password", "")):
+            data["admin_password"] = hash_password(Telegram.ADMIN_PASSWORD)
+            needs_save = True
+
         #----- Backfill & persist a session secret for installs that predate this setting,
         #----- otherwise a new random key would be generated every restart (logging admins out)
-        if not cls._current.session_secret:
-            data = cls._current.to_dict()
+        if not data.get("session_secret"):
             data["session_secret"] = secrets.token_hex(32)
+            needs_save = True
+            LOGGER.info("SettingsManager: generated and stored a new persistent session secret.")
+
+        if needs_save:
             await db.save_settings(data)
             cls._current = Settings(data)
-            LOGGER.info("SettingsManager: generated and stored a new persistent session secret.")
+            LOGGER.info("SettingsManager: synchronized settings with environment secrets.")
 
         LOGGER.info("SettingsManager: settings loaded successfully.")
 
