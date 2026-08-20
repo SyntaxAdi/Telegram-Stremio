@@ -307,6 +307,14 @@ class SettingsManager:
             data["admin_password"] = hash_password(Telegram.ADMIN_PASSWORD)
             needs_save = True
 
+        if Telegram.AUTH_CHANNEL:
+            existing = list(data.get("auth_channels") or [])
+            for ch in Telegram.AUTH_CHANNEL:
+                if ch not in existing:
+                    existing.append(ch)
+                    needs_save = True
+            data["auth_channels"] = existing
+
         #----- Backfill & persist a session secret for installs that predate this setting,
         #----- otherwise a new random key would be generated every restart (logging admins out)
         if not data.get("session_secret"):
@@ -315,6 +323,7 @@ class SettingsManager:
             LOGGER.info("SettingsManager: generated and stored a new persistent session secret.")
 
         if needs_save:
+            await cls._sync_channel_titles(data)
             await db.save_settings(data)
             cls._current = Settings(data)
             LOGGER.info("SettingsManager: synchronized settings with environment secrets.")
