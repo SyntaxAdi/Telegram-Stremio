@@ -323,6 +323,46 @@ class SettingsManager:
                     needs_save = True
             data["multi_tokens"] = existing_tokens
 
+        if Telegram.TMDB_API and data.get("tmdb_api") != Telegram.TMDB_API:
+            data["tmdb_api"] = Telegram.TMDB_API
+            needs_save = True
+
+        if Telegram.TVDB_API and data.get("tvdb_api") != Telegram.TVDB_API:
+            data["tvdb_api"] = Telegram.TVDB_API
+            needs_save = True
+
+        if Telegram.BASE_URL and data.get("base_url") != Telegram.BASE_URL:
+            data["base_url"] = Telegram.BASE_URL
+            needs_save = True
+
+        if Telegram.UPSTREAM_REPO and data.get("upstream_repo") != Telegram.UPSTREAM_REPO:
+            data["upstream_repo"] = Telegram.UPSTREAM_REPO
+            needs_save = True
+
+        if Telegram.UPSTREAM_BRANCH and data.get("upstream_branch") != Telegram.UPSTREAM_BRANCH:
+            data["upstream_branch"] = Telegram.UPSTREAM_BRANCH
+            needs_save = True
+
+        if Telegram.HTTP_PROXY_URL and data.get("http_proxy_url") != Telegram.HTTP_PROXY_URL:
+            data["http_proxy_url"] = Telegram.HTTP_PROXY_URL
+            needs_save = True
+
+        if Telegram.WEBDAV_USER and data.get("webdav_user") != Telegram.WEBDAV_USER:
+            data["webdav_user"] = Telegram.WEBDAV_USER
+            needs_save = True
+
+        if Telegram.WEBDAV_PASSWORD and data.get("webdav_password") != Telegram.WEBDAV_PASSWORD:
+            data["webdav_password"] = Telegram.WEBDAV_PASSWORD
+            needs_save = True
+
+        if Telegram.APPROVER_IDS:
+            existing_approvers = list(data.get("approver_ids") or [])
+            for aid in Telegram.APPROVER_IDS:
+                if aid not in existing_approvers:
+                    existing_approvers.append(aid)
+                    needs_save = True
+            data["approver_ids"] = existing_approvers
+
         #----- Backfill & persist a session secret for installs that predate this setting,
         #----- otherwise a new random key would be generated every restart (logging admins out)
         if not data.get("session_secret"):
